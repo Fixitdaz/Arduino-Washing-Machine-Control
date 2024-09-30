@@ -1,0 +1,68 @@
+#include <Servo.h>
+
+// Pin definitions
+const int waterValvePin = 2;
+const int drainPumpPin = 3;
+const int motorPin = 4;
+const int servoPin = 5;
+
+// Time constants (in milliseconds)
+const unsigned long fillTime = 60000;  // 1 minute
+const unsigned long washTime = 300000;  // 5 minutes
+const unsigned long drainTime = 60000;  // 1 minute
+const unsigned long spinTime = 120000;  // 2 minutes
+
+Servo agitator;
+
+void setup() {
+  pinMode(waterValvePin, OUTPUT);
+  pinMode(drainPumpPin, OUTPUT);
+  pinMode(motorPin, OUTPUT);
+  
+  agitator.attach(servoPin);
+  
+  Serial.begin(9600);
+  Serial.println("Washing Machine Control System");
+}
+
+void loop() {
+  Serial.println("Starting short wash program");
+  
+  // Fill with water
+  Serial.println("Filling with water");
+  digitalWrite(waterValvePin, HIGH);
+  delay(fillTime);
+  digitalWrite(waterValvePin, LOW);
+  
+  // Wash cycle
+  Serial.println("Washing");
+  for (unsigned long startTime = millis(); millis() - startTime < washTime;) {
+    agitateClothes();
+  }
+  
+  // Drain water
+  Serial.println("Draining water");
+  digitalWrite(drainPumpPin, HIGH);
+  delay(drainTime);
+  digitalWrite(drainPumpPin, LOW);
+  
+  // Spin cycle
+  Serial.println("Spin cycle");
+  digitalWrite(motorPin, HIGH);
+  delay(spinTime);
+  digitalWrite(motorPin, LOW);
+  
+  Serial.println("Wash program complete");
+  delay(5000);  // Wait 5 seconds before starting again
+}
+
+void agitateClothes() {
+  for (int pos = 0; pos <= 180; pos += 1) {
+    agitator.write(pos);
+    delay(15);
+  }
+  for (int pos = 180; pos >= 0; pos -= 1) {
+    agitator.write(pos);
+    delay(15);
+  }
+}
